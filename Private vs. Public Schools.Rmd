@@ -1,0 +1,128 @@
+---
+title: "Day2_Activity_Arora"
+author: "Raghav Arora"
+date: "2022-09-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries}
+library(tidyverse)
+library(here)
+library(ggplot2)
+```
+
+```{r data_read}
+data <- read.csv(here("colleges_clean.csv"))
+```
+
+# Questions and Answers
+
+1.  How many private and public schools are there in your data?
+
+```{r Q1}
+data %>%
+  ggplot(aes(x=CONTROL))+
+  geom_bar()
+```
+
+Ans. Public: 500 schools, Private: 800 schools
+
+2.  What is the overall average SAT Score?
+
+```{r Q2}
+data %>%
+  ggplot(aes(x=SAT_AVG))+
+  geom_histogram()
+```
+
+Ans. Avg: 1100
+
+3.  What is the average SAT score for Private and Public schools?
+
+```{r Q3}
+data_c <- data %>%
+  mutate(CONTROL = ifelse(CONTROL == 1, "Public","Private")) 
+data_c %>%
+  ggplot(aes(x=SAT_AVG, fill=CONTROL))+
+  geom_histogram()
+```
+
+Ans. Private Avg: 1150 , Private Avg: 1050
+
+4.  Which school has the largest difference betweeen In- and Out-of-State tuition?
+
+```{r Q4}
+data_2 <- data %>%
+  slice_max(TUITION_DIFF, n=5)
+ggplot(data=data_2)+
+  geom_col(mapping=aes(x=TUITION_DIFF, y=INSTNM, fill=INSTNM))
+```
+
+Ans. University of Michigan Ann Arbor has the highest tuition difference.
+
+5.  Are "better" schools more expensive?
+
+```{r Q5}
+data$TUITION_AVG = (data$TUITIONFEE_IN+data$TUITIONFEE_OUT)/2
+data %>%
+  ggplot(aes(x=SAT_AVG, y=TUITION_AVG))+
+  geom_point()
+```
+
+Ans. Colleges with students with higher SAT averages ('better') generally tend to be more expensive.
+
+6.  Which states tend to have the "best deals" of colleges?
+
+```{r Q6}
+data_3 <- data %>%
+  group_by(STABBR) %>%
+  summarise(TUITION_AVG = mean(TUITION_AVG), SAT_avg = mean(SAT_AVG))
+
+ggplot(data = data_3) +
+  geom_point(mapping = aes(x=TUITION_AVG, y = SAT_avg, color = STABBR)) 
+
+data_4 <- data_3 %>% 
+  slice_min(TUITION_AVG,n = 10)
+
+ggplot(data = data_4) +
+  geom_point(mapping = aes(x=TUITION_AVG, y = SAT_avg, color = STABBR)) 
+```
+
+Ans. Wyoming (WY) has the best deal since it has a high sat average and comparatively low tuition average.
+
+7.  Do different regions have different public and private school distributions?
+
+```{r Q7}
+data_c %>%
+  ggplot(aes(x=factor(REGION), fill=CONTROL), position = "fill") +
+  geom_bar()
+```
+
+Ans. Every region has different distributions except for region 0 and 9 which only have public schools.
+
+8.How does the size of the school relate to the cost, correcting for public versus private status?
+
+```{r Q8}
+data_c <- data %>%
+  mutate(CONTROL = ifelse(CONTROL == 1, "Public","Private")) 
+data_c %>%
+  ggplot(aes(x=TUITION_AVG, y=UGDS,color=CONTROL))+
+  geom_point()
+```
+
+Ans. For PRIVATE schools, as the tuition fee increases, the size of the school increases gradually. 
+For PUBLIC schools, as the tuition fee increases, the size of the school increases exponentially.
+
+Plot Re-creation:
+
+```{r Plot Re}
+data_c <- data %>%
+  mutate(CONTROL = ifelse(CONTROL == 1, "Public","Private")) 
+data_c %>%
+  ggplot(aes(x=factor(REGION), y=ADM_RATE,fill=CONTROL))+
+  geom_boxplot()
+```
